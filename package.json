@@ -1,0 +1,38 @@
+{
+  "name": "sellable",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Sellable — paste the CA, know if you can sell. Token trade-safety + alerts for BOT Chain.",
+  "workspaces": [
+    "packages/*"
+  ],
+  "scripts": {
+    "check": "tsx packages/cli/src/main.ts",
+    "smoke": "tsx packages/cli/src/smoke.ts",
+    "test": "tsx packages/db/test/all.ts && tsx packages/core/test/all.ts && tsx packages/probe/test/all.ts && tsx packages/api/test/all.ts && tsx packages/bot/test/all.ts",
+    "api": "tsx packages/api/src/main.ts",
+    "bot": "tsx packages/bot/src/main.ts",
+    "web": "npm run dev -w @sellable/web",
+    "web:build": "npm run build -w @sellable/web",
+    "probe": "tsx packages/probe/src/main.ts",
+    "migrate": "tsx packages/db/src/migrate.ts",
+    "harness:compile": "tsx packages/harness/src/compile.ts",
+    "harness:deploy": "tsx packages/harness/src/deploy.ts",
+    "harness:verify": "tsx packages/harness/src/verify.ts",
+    "harness:liquidity": "tsx packages/harness/src/liquidity.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@hono/node-server": "^2.1.3",
+    "ethers": "^6.13.0",
+    "hono": "^4.13.13",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/pg": "^8.23.1",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}
