@@ -1,0 +1,12 @@
+{
+  "name": "@sellable/harness",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sellable/core": "*"
+  },
+  "devDependencies": {
+    "solc": "0.8.28"
+  }
+}

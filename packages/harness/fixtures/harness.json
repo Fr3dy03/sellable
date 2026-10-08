@@ -1,0 +1,22 @@
+{
+  "chainId": 968,
+  "rpc": "https://rpc.bohr.life",
+  "explorer": "https://scan.bohr.life",
+  "deployer": "0xb9789B785E50C2f0C008705f678e6F8d4fA0ba4a",
+  "deployedAt": "2026-10-07T20:55:43.927Z",
+  "tokens": {
+    "BenignToken": "0xa96746E5A95B84fE758b754C857bF0eFD08B77Ad",
+    "HoneypotToken": "0xB4733E18a5541A29Ea4E998c31053621F757d398",
+    "TaxToken": "0x5508c9b8CA4540B273ea7e14c4ace6778a20412b",
+    "BlacklistToken": "0x910ca1183E3ECa59BbB815eAF1BA207655B28b8f",
+    "MintLaterToken": "0x416E5B6699362d3238B7699334531A8F9d3A4e7A",
+    "FakeUSDT": "0x9fD9f73E5E0A79177F2cAC75DC1cEeeafc90e4a3"
+  },
+  "lastBlock": 26062748,
+  "pairs": {
+    "BenignToken": "0x1E40432322ddb36814C16d63Bc03e3885639E666",
+    "TaxToken": "0xD288c909D99263017b5499eD3833cc063D39473D",
+    "HoneypotToken": "0xc6D339FB90C9ab007E28085dDA2c870E61DFACE3"
+  },
+  "updatedAt": "2026-10-07T21:17:57.509Z"
+}
