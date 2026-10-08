@@ -51,14 +51,17 @@ const probe = (address: string, costBotWei: string) => ({
 });
 
 test('makeRepo: env defaults, DB_FILE selects FileRepo', () => {
-  const prev = process.env.DB_FILE;
+  const prevFile = process.env.DB_FILE;
+  const prevUrl = process.env.DB_URL;
   process.env.DB_FILE = store;
+  delete process.env.DB_URL;
   try {
     const repo = makeRepo(undefined, undefined);
     assert.ok(repo instanceof FileRepo);
   } finally {
-    if (prev === undefined) delete process.env.DB_FILE;
-    else process.env.DB_FILE = prev;
+    if (prevFile === undefined) delete process.env.DB_FILE;
+    else process.env.DB_FILE = prevFile;
+    if (prevUrl !== undefined) process.env.DB_URL = prevUrl;
   }
 });
 
@@ -156,6 +159,24 @@ test('setMinSeverity updates every subscription of a chat and persists', async (
   assert.ok(subs.every((s) => s.minSeverity === 'danger'));
   assert.equal(await reloaded.setMinSeverity(99, 'warn'), 0, 'unknown chat → 0');
 });
+
+if (process.env.DB_URL) {
+  test('PgRepo maps NUMERIC columns to their declared types', async () => {
+    const repo = makeRepo(process.env.DB_URL);
+    try {
+      const addr = '0x0000000000000000000000000000000000000099';
+      await repo.saveProbe({ ...probe(addr, '123'), costUsd: 0.0694 });
+      const [p] = await repo.listProbes(addr);
+      assert.equal(typeof p.costUsd, 'number');
+      assert.equal(p.costUsd, 0.0694);
+      assert.equal(typeof p.chainId, 'number');
+      assert.equal(typeof p.amountInWei, 'string');
+      assert.equal(await repo.ping(), true);
+    } finally {
+      await repo.close();
+    }
+  });
+}
 
 async function run(): Promise<void> {
   let pass = 0;

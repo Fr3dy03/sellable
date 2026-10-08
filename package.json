@@ -17,6 +17,7 @@
     "web:build": "npm run build -w @sellable/web",
     "probe": "tsx packages/probe/src/main.ts",
     "migrate": "tsx packages/db/src/migrate.ts",
+    "seed": "tsx packages/db/src/seed.ts",
     "build": "tsc -b tsconfig.build.json",
     "harness:compile": "tsx packages/harness/src/compile.ts",
     "harness:deploy": "tsx packages/harness/src/deploy.ts",

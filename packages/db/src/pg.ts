@@ -178,7 +178,7 @@ export class PgRepo implements Repo {
       sellTx: row.sell_tx ?? null,
       gasSpentWei: row.gas_spent_wei != null ? String(row.gas_spent_wei) : null,
       costBotWei: row.cost_bot_wei != null ? String(row.cost_bot_wei) : null,
-      costUsd: row.cost_usd ?? null,
+      costUsd: row.cost_usd != null ? Number(row.cost_usd) : null,
       revertReason: row.revert_reason ?? null,
       verdict: row.verdict,
       createdAt: new Date(row.created_at).toISOString(),
