@@ -7,7 +7,8 @@ const repoRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '
 const nextConfig = {
   outputFileTracingRoot: repoRoot,
   async rewrites() {
-    const api = process.env.API_URL || 'http://localhost:8787';
+    const raw = (process.env.API_URL || 'http://localhost:8787').trim();
+    const api = raw.replace(/\/+$/, '').replace(/\/api$/, '');
     return [{ source: '/api/:path*', destination: `${api}/:path*` }];
   },
 };
