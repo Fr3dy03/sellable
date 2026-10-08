@@ -169,7 +169,7 @@ from it (monorepo, one repo, two Root Directories):
 |---|---|
 | Root Directory | `/` (repository root) |
 | Framework preset | **Hono** — auto-detected from root `server.ts` |
-| Build command | leave default (zero-config) |
+| Build command | leave default — root `build` (`tsc -b tsconfig.build.json`) precompiles the workspace packages to `dist/*.js` so the lambda can `import` them; local dev (`tsx`) resolves `@sellable/*` to `src` via tsconfig `paths` |
 
 Env vars: `CHAIN_ENV=testnet` (omit for mainnet), optional `DB_URL` (Postgres,
 e.g. Neon — see below), optional `DB_FILE=/tmp/sellable-store.json` (per-instance

@@ -11,13 +11,11 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true,
-    "baseUrl": ".",
-    "paths": {
-      "@sellable/core": ["packages/core/src/index.ts"],
-      "@sellable/db": ["packages/db/src/index.ts"],
-      "@sellable/api": ["packages/api/src/server.ts"]
-    }
+    "composite": true,
+    "declaration": true,
+    "outDir": "dist",
+    "rootDir": "src"
   },
-  "include": ["server.ts", "packages/*/src/**/*.ts", "packages/*/test/**/*.ts"]
+  "include": ["src/**/*.ts"],
+  "references": [{ "path": "../core" }]
 }

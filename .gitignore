@@ -1,6 +1,8 @@
 node_modules/
 .next/
+dist/
 .env
 data/
 packages/harness/artifacts/
 *.log
+*.tsbuildinfo
