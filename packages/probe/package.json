@@ -1,0 +1,10 @@
+{
+  "name": "@sellable/probe",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@sellable/core": "*",
+    "@sellable/db": "*"
+  }
+}
