@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "main": "src/server.ts",
   "dependencies": {
     "@sellable/core": "*",
     "@sellable/db": "*"

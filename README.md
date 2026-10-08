@@ -158,6 +158,48 @@ loses ~$0.30 of budget and says `HONEYPOT`.
 DB_URL=postgres://user:pass@localhost:5432/sellable npm run migrate
 ```
 
+## Deploy to Vercel
+
+Import `Fr3dy03/sellable` at https://vercel.com/new and create **two projects**
+from it (monorepo, one repo, two Root Directories):
+
+**1 — API (Hono backend)**
+
+| setting | value |
+|---|---|
+| Root Directory | `/` (repository root) |
+| Framework preset | **Hono** — auto-detected from root `server.ts` |
+| Build command | leave default (zero-config) |
+
+Env vars: `CHAIN_ENV=testnet` (omit for mainnet), optional `DB_URL` (Postgres,
+e.g. Neon — see below), optional `DB_FILE=/tmp/sellable-store.json` (per-instance
+cache). Deploy and copy the URL.
+
+**2 — Web (Next.js)**
+
+| setting | value |
+|---|---|
+| Root Directory | `packages/web` |
+| Framework preset | **Next.js** — auto-detected |
+| Env vars | `API_URL=https://<api-project-url>` — **set before the first build**: the `/api/*` → API rewrite is compiled into the build |
+
+Enable GitHub integration on both projects so pushes to `main` redeploy.
+
+**What does not run on Vercel:** `npm run probe -- --loop` and `npm run bot`
+are long-running processes — run them on any always-on host (your machine, a
+VPS, Railway, …). For the deployed API and the local worker/bot to share the
+probe queue and alert outbox, give all three the **same `DB_URL`**:
+
+```sh
+DB_URL=postgres://… CHAIN_ENV=testnet npm run migrate   # once
+DB_URL=postgres://… npm run api                          # local dev, or leave on Vercel
+DB_URL=postgres://… CHAIN_ENV=testnet npm run probe -- --loop
+DB_URL=postgres://… CHAIN_ENV=testnet TELEGRAM_BOT_TOKEN=… npm run bot
+```
+
+Without `DB_URL` the Vercel API keeps state in memory (pre-checks still work,
+caches reset on cold starts) and cannot share the queue with local processes.
+
 ## Phases
 
 - **0 — done** — monorepo, pre-check engine, CLI, tests, harness tokens.
