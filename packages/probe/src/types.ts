@@ -1,6 +1,6 @@
 export type TxResult =
   | { ok: true; txHash: string | null; received?: bigint }
-  | { ok: false; txHash?: string | null; reason: string };
+  | { ok: false; txHash?: string | null; reason: string; failureKind?: 'execution' | 'infrastructure' };
 
 export interface ProbeDeps {
   amountInWei: bigint;

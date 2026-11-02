@@ -17,6 +17,9 @@ export function makeRepo(
   dbUrl: string | undefined = process.env.DB_URL,
   dbFile: string | undefined = process.env.DB_FILE,
 ): import('./types.js').Repo {
+  if (process.env.NODE_ENV === 'production' && !dbUrl?.trim()) {
+    throw new Error('Production requires DB_URL (durable Postgres); memory and file storage are development only');
+  }
   if (dbUrl && dbUrl.trim()) return new PgRepo(dbUrl.trim());
   if (dbFile && dbFile.trim()) return new FileRepo(dbFile.trim());
   return new MemoryRepo();

@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { Hono } from 'hono';
 import { MemoryRepo } from '@sellable/db';
-import { createApp } from '../src/server.js';
+import { createApp as createApi } from '../src/server.js';
+const createApp = (repo: MemoryRepo) => createApi(repo, { requireProbeAuth: false, checkRpc: async () => 123 });
 
 const USDT = '0xaBabc7Ddc03e501d190C676BF3d92ef0e6e87a3C';
 
@@ -36,7 +37,26 @@ test('check rejects invalid address', async () => {
   assert.equal(res2.status, 400);
 });
 
+test('health distinguishes RPC failure from storage failure', async () => {
+  const rpcDown = createApi(new MemoryRepo(), { checkRpc: async () => { throw new Error('RPC unavailable'); } });
+  const response = await call(rpcDown, 'GET', '/health');
+  assert.equal(response.status, 503);
+  const health = await response.json() as { db: boolean; rpc: boolean; block: number | null };
+  assert.equal(health.db, true);
+  assert.equal(health.rpc, false);
+  assert.equal(health.block, null);
+  const repo = new MemoryRepo();
+  repo.ping = async () => false;
+  const storageDown = await call(createApp(repo), 'GET', '/health');
+  const storageHealth = await storageDown.json() as { db: boolean; rpc: boolean; block: number };
+  assert.equal(storageDown.status, 503);
+  assert.equal(storageHealth.db, false);
+  assert.equal(storageHealth.rpc, true);
+  assert.equal(storageHealth.block, 123);
+});
+
 test('live pre-check of USDT, then cached read', async () => {
+  if (process.env.RUN_LIVE_TESTS !== 'true') return;
   const repo = new MemoryRepo();
   const app = createApp(repo);
   const res = await call(app, 'POST', '/check', { address: USDT });
@@ -118,6 +138,43 @@ test('probe rejects non-contract / no-liquidity verdicts (422)', async () => {
   await repo.savePrecheck(report);
   const res = await call(app, 'POST', '/probe', { address: USDT });
   assert.equal(res.status, 422);
+});
+
+test('malformed JSON shapes are rejected without a server error', async () => {
+  const app = createApp(new MemoryRepo());
+  for (const body of [{ address: 42 }, ['address'], { address: {} }]) {
+    for (const route of ['/check', '/probe']) {
+      assert.equal((await call(app, 'POST', route, body)).status, 400);
+    }
+  }
+  const res = await app.request('/check', { method: 'POST', headers: { 'content-type': 'application/json' }, body: 'null' });
+  assert.equal(res.status, 400);
+});
+
+test('probe authorization gates spending and handles incorrect credentials', async () => {
+  const previous = { key: process.env.PROBE_API_KEY, enabled: process.env.PROBE_ENABLED };
+  try {
+    process.env.PROBE_API_KEY = 'test-operator-secret';
+    process.env.PROBE_ENABLED = 'false';
+    const app = createApp(new MemoryRepo());
+    assert.equal((await call(app, 'POST', '/probe', { address: USDT })).status, 503);
+    process.env.PROBE_ENABLED = 'true';
+    assert.equal((await call(app, 'POST', '/probe', { address: USDT })).status, 401);
+    const request = (key: string) => app.request('/probe', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` }, body: JSON.stringify({ address: USDT }) });
+    assert.equal((await request('wrong-secret')).status, 401);
+    assert.equal((await request('test-operator-secret')).status, 202);
+  } finally {
+    if (previous.key === undefined) delete process.env.PROBE_API_KEY; else process.env.PROBE_API_KEY = previous.key;
+    if (previous.enabled === undefined) delete process.env.PROBE_ENABLED; else process.env.PROBE_ENABLED = previous.enabled;
+  }
+});
+
+test('unhealthy database makes health fail and large bodies are rejected', async () => {
+  const repo = new MemoryRepo();
+  repo.ping = async () => false;
+  const app = createApp(repo);
+  assert.equal((await call(app, 'GET', '/health')).status, 503);
+  assert.equal((await call(app, 'POST', '/check', { address: 'x'.repeat(5000) })).status, 413);
 });
 
 async function run(): Promise<void> {

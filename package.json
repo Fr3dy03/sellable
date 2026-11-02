@@ -7,22 +7,33 @@
   "workspaces": [
     "packages/*"
   ],
+  "engines": {
+    "node": ">=22.9.0 <25"
+  },
+  "overrides": {
+    "postcss": "8.5.32",
+    "tmp": "0.2.7"
+  },
   "scripts": {
-    "check": "tsx packages/cli/src/main.ts",
-    "smoke": "tsx packages/cli/src/smoke.ts",
-    "test": "tsx packages/db/test/all.ts && tsx packages/core/test/all.ts && tsx packages/probe/test/all.ts && tsx packages/api/test/all.ts && tsx packages/bot/test/all.ts",
-    "api": "tsx packages/api/src/main.ts",
-    "bot": "tsx packages/bot/src/main.ts",
+    "check": "node --env-file-if-exists=.env --import tsx packages/cli/src/main.ts",
+    "smoke": "node --env-file-if-exists=.env --import tsx packages/cli/src/smoke.ts",
+    "test": "node --import tsx packages/db/test/all.ts && node --import tsx packages/core/test/all.ts && node --import tsx packages/probe/test/all.ts && node --import tsx packages/api/test/all.ts && node --import tsx packages/bot/test/all.ts",
+    "api": "node --env-file-if-exists=.env --import tsx packages/api/src/main.ts",
+    "bot": "node --env-file-if-exists=.env --import tsx packages/bot/src/main.ts",
     "web": "npm run dev -w @sellable/web",
     "web:build": "npm run build -w @sellable/web",
-    "probe": "tsx packages/probe/src/main.ts",
-    "migrate": "tsx packages/db/src/migrate.ts",
-    "seed": "tsx packages/db/src/seed.ts",
+    "probe": "node --env-file-if-exists=.env --import tsx packages/probe/src/main.ts",
+    "migrate": "node --env-file-if-exists=.env --import tsx packages/db/src/migrate.ts",
+    "seed": "node --env-file-if-exists=.env --import tsx packages/db/src/seed.ts",
     "build": "tsc -b tsconfig.build.json",
-    "harness:compile": "tsx packages/harness/src/compile.ts",
-    "harness:deploy": "tsx packages/harness/src/deploy.ts",
-    "harness:verify": "tsx packages/harness/src/verify.ts",
-    "harness:liquidity": "tsx packages/harness/src/liquidity.ts",
+    "harness:compile": "node --env-file-if-exists=.env --import tsx packages/harness/src/compile.ts",
+    "harness:deploy": "node --env-file-if-exists=.env --import tsx packages/harness/src/deploy.ts",
+    "contracts:compile": "node --env-file-if-exists=.env --import tsx packages/contracts/src/compile.ts",
+    "contracts:deploy": "node --env-file-if-exists=.env --import tsx packages/contracts/src/deploy.ts",
+    "mainnet:preflight": "node --env-file-if-exists=.env --import tsx packages/cli/src/preflight.ts",
+    "test:integration": "node --env-file-if-exists=.env --import tsx packages/db/test/integration.ts",
+    "harness:verify": "node --env-file-if-exists=.env --import tsx packages/harness/src/verify.ts",
+    "harness:liquidity": "node --env-file-if-exists=.env --import tsx packages/harness/src/liquidity.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {

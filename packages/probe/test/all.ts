@@ -50,6 +50,11 @@ test('sell reverts → HONEYPOT', async () => {
   assert.equal(r.sellTx, null);
 });
 
+test('sell infrastructure failure is INCONCLUSIVE, never HONEYPOT', async () => {
+  const result = await runProbe('0xtoken', baseDeps({ sell: async () => ({ ok: false, reason: 'gas price exceeds probe limit', failureKind: 'infrastructure' }) }));
+  assert.equal(result.verdict, 'INCONCLUSIVE');
+});
+
 test('buy reverts → INCONCLUSIVE (buy leg failed)', async () => {
   const r = await runProbe(
     '0xtoken',

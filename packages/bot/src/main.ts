@@ -1,4 +1,4 @@
-import { CURRENT, getBlockNumber, getLogs, preCheck } from '@sellable/core';
+import { CURRENT, getBlockNumber, getLogs, preCheck, assertChain } from '@sellable/core';
 import { makeRepo } from '@sellable/db';
 import { createTelegram } from './telegram.js';
 import { handleCommand } from './commands.js';
@@ -17,6 +17,8 @@ async function main(): Promise<void> {
   }
 
   const repo = makeRepo();
+  await assertChain();
+  if (!(await repo.ping())) throw new Error('Database unavailable');
   const telegram = createTelegram(token);
   const broadcastChat = process.env.TELEGRAM_ALERT_CHAT
     ? Number(process.env.TELEGRAM_ALERT_CHAT)

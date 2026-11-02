@@ -22,7 +22,8 @@ export class PgRepo implements Repo {
   }
 
   async ping(): Promise<boolean> {
-    await this.pool.query('SELECT 1');
+    const result = await this.pool.query('SELECT chain_id FROM deployment_network WHERE singleton = true');
+    if (Number(result.rows[0]?.chain_id) !== CURRENT.chainId) throw new Error('Database network mismatch; use a separate database for each chain');
     return true;
   }
 
@@ -239,7 +240,7 @@ export class PgRepo implements Repo {
   async todayCostWei(): Promise<bigint> {
     const r = await this.pool.query(
       `SELECT COALESCE(SUM(cost_bot_wei), 0)::text AS total
-         FROM probes WHERE created_at >= date_trunc('day', now())`,
+         FROM probes WHERE created_at >= (date_trunc('day', now() AT TIME ZONE 'UTC') AT TIME ZONE 'UTC')`,
     );
     return BigInt(r.rows[0]?.total ?? '0');
   }

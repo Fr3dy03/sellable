@@ -1,0 +1,21 @@
+{
+  "contract": "SellableVerdictRegistry",
+  "address": "0x72BF3636A80b850aD718917fbCA06443F658C4BB",
+  "chainId": 677,
+  "network": "bot-mainnet",
+  "rpc": "https://rpc.botchain.ai",
+  "explorer": "https://scan.botchain.ai",
+  "deployer": "0xEA309FEF0130F6c69810cAB49A4CAC98D91Efc2e",
+  "owner": "0xEA309FEF0130F6c69810cAB49A4CAC98D91Efc2e",
+  "publisher": "0xEA309FEF0130F6c69810cAB49A4CAC98D91Efc2e",
+  "transactionHash": "0x44fe3638de5334b639c9b44cb426ae2aa1fc981e34916091a6468e5d46c5a1a1",
+  "blockNumber": 28716800,
+  "deployedAt": "2026-11-01T08:34:04.941Z",
+  "compiler": "0.8.28+commit.7893614a.Emscripten.clang",
+  "creationBytecodeHash": "0x9958a6388d3cc0fa5047b000907fc7176006d9fb040f4ae4c3d05ff3c18421ab",
+  "runtimeBytecodeHash": "0x0217ee90119d789021c069578620043c5a73f0b932ecf0082791784616cdff32",
+  "gasUsed": "488978",
+  "gasPriceWei": "20000000000",
+  "deploymentCostBOT": "0.00977956",
+  "confirmations": 3
+}

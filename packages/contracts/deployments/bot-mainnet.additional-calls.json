@@ -1,0 +1,66 @@
+{
+  "contract": "0x72BF3636A80b850aD718917fbCA06443F658C4BB",
+  "chainId": 677,
+  "transactions": [
+    {
+      "hash": "0xb78dba893dba064e731672e4ecc393b70420e3218b8d858d9ca81a576d70fba2",
+      "from": "0x165A114d52e295411fC8E643F2f1488E783F12b7",
+      "to": "0x72BF3636A80b850aD718917fbCA06443F658C4BB",
+      "method": "publisher",
+      "nonce": 1,
+      "state": "confirmed",
+      "blockNumber": 28728581,
+      "feeBOT": "0.00046736"
+    },
+    {
+      "hash": "0xe40f19a8619bddfa955651119d0b2bad08e290c52c1ed70ff68845e08304e68a",
+      "from": "0x66355872d6B72d753deC299b232e01A47DabeF48",
+      "to": "0x72BF3636A80b850aD718917fbCA06443F658C4BB",
+      "method": "owner",
+      "nonce": 1,
+      "state": "confirmed",
+      "blockNumber": 28728590,
+      "feeBOT": "0.0004678"
+    }
+  ],
+  "completedAt": "2026-11-01T11:01:23.129Z",
+  "verification": {
+    "verifiedAt": "2026-11-01T11:02:34.094Z",
+    "successfulContractCalls": 5,
+    "distinctWallets": 3,
+    "explorerIndexedCalls": 5,
+    "missingFromExplorer": [],
+    "calls": [
+      {
+        "hash": "0x2ba75a79967ef1e6307f72609709e51506c1eb4c0dde2dd4e849536c588a883d",
+        "from": "0x165A114d52e295411fC8E643F2f1488E783F12b7",
+        "status": 1,
+        "confirmations": 952
+      },
+      {
+        "hash": "0xced23ffc0394a51aebcf0754145eb2432891206390e0b1982dcecfede5e51058",
+        "from": "0x66355872d6B72d753deC299b232e01A47DabeF48",
+        "status": 1,
+        "confirmations": 944
+      },
+      {
+        "hash": "0xb96e1d9854240abf949ad4dc903794a376bb0641c22f66955927a54e9fd332b9",
+        "from": "0x5c4412F308946b38949e65F760724aB01055f3d2",
+        "status": 1,
+        "confirmations": 925
+      },
+      {
+        "hash": "0xb78dba893dba064e731672e4ecc393b70420e3218b8d858d9ca81a576d70fba2",
+        "from": "0x165A114d52e295411fC8E643F2f1488E783F12b7",
+        "status": 1,
+        "confirmations": 105
+      },
+      {
+        "hash": "0xe40f19a8619bddfa955651119d0b2bad08e290c52c1ed70ff68845e08304e68a",
+        "from": "0x66355872d6B72d753deC299b232e01A47DabeF48",
+        "status": 1,
+        "confirmations": 96
+      }
+    ]
+  }
+}

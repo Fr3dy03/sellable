@@ -52,6 +52,8 @@ export interface Health {
   ok: boolean;
   chainId: number;
   db: boolean;
+  rpc: boolean;
+  block: number | null;
   stage: string;
   network: string;
 }
@@ -64,9 +66,10 @@ export interface CheckResponse {
 export const isAddress = (s: string): boolean => /^0x[0-9a-fA-F]{40}$/.test(s.trim());
 
 export async function fetchHealth(): Promise<Health> {
-  const res = await fetch('/api/health');
-  if (!res.ok) throw new Error(`health failed (${res.status})`);
-  return res.json();
+  const res = await fetch('/api/health', { cache: 'no-store', signal: AbortSignal.timeout(15_000) });
+  const health = await res.json();
+  if (typeof health?.chainId !== 'number' || typeof health?.rpc !== 'boolean') throw new Error('API health unavailable');
+  return health;
 }
 
 export function explorerBase(network: string): string {

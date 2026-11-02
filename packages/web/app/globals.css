@@ -60,8 +60,33 @@ main { flex: 1; width: 100%; max-width: 880px; margin: 0 auto; padding: 48px 20p
 .chain-dot.testnet { background: var(--amber); }
 
 .site-footer {
-  border-top: 1px solid var(--line); padding: 18px 20px;
-  color: var(--muted); font-size: 0.78rem; text-align: center;
+  border-top: 1px solid var(--line); padding: 24px 20px 20px;
+  background: rgba(255, 253, 247, 0.65);
+  color: var(--muted); font-size: 0.78rem;
+}
+.footer-inner {
+  max-width: 840px; margin: 0 auto;
+  display: flex; align-items: center; justify-content: space-between; gap: 24px;
+}
+.footer-network { display: flex; align-items: center; gap: 14px; }
+.footer-label { white-space: nowrap; }
+.footer-logo {
+  display: inline-flex; align-items: center; padding: 10px 14px;
+  background: #152b26; border-radius: 8px;
+}
+.footer-logo img { display: block; width: 166px; height: 32px; object-fit: contain; }
+.footer-links { display: flex; align-items: center; flex-wrap: wrap; gap: 24px; }
+.footer-links a { color: var(--text); text-decoration: none; line-height: 1.5; padding: 8px 0; }
+.footer-links a span { color: var(--accent); margin-left: 3px; }
+.footer-links a:hover { color: var(--accent); text-decoration: underline; text-underline-offset: 4px; }
+.footer-logo:focus-visible, .footer-links a:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 4px;
+}
+.footer-tagline { max-width: 840px; margin: 18px auto 0; line-height: 1.5; }
+@media (max-width: 540px) {
+  .footer-inner { flex-direction: column; align-items: flex-start; gap: 14px; }
+  .footer-links { gap: 28px; }
+  .footer-tagline { margin-top: 14px; }
 }
 
 h1 { font-size: 2.1rem; line-height: 1.15; margin-bottom: 12px; }

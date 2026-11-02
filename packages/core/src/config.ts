@@ -78,7 +78,11 @@ export const HOLDERS_MAX_PAGES = 4;
 export const WRAP_TOKEN = '0xD5452816194a3784dBa983426cCe7c122F4abd30';
 
 /** CHAIN_ENV=testnet switches the whole stack (analyzer, probe, API) to Bohr. */
-export const IS_TESTNET = (process.env.CHAIN_ENV || 'mainnet') === 'testnet';
+export const CHAIN_ENV = process.env.CHAIN_ENV || 'mainnet';
+if (CHAIN_ENV !== 'mainnet' && CHAIN_ENV !== 'testnet') {
+  throw new Error('CHAIN_ENV must be mainnet or testnet');
+}
+export const IS_TESTNET = CHAIN_ENV === 'testnet';
 
 export const CURRENT = IS_TESTNET
   ? {

@@ -204,9 +204,9 @@ export default function TokenPage() {
               no live probe yet — pre-check above is simulation-only.
             </span>
             <div style={{ marginTop: 10 }}>
-              <button className="btn-ghost" onClick={() => void runProbe()}>
+              {process.env.NODE_ENV !== 'production' ? <button className="btn-ghost" onClick={() => void runProbe()}>
                 run probe (~0.02 BOT)
-              </button>
+              </button> : <span className="hint">Live probes are requested by authorized operators. Results appear here when available.</span>}
               {probeState === 'queued' && (
                 <span className="hint" style={{ marginLeft: 10 }}>
                   queued — waiting for the probe worker

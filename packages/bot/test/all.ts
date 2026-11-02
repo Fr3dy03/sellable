@@ -161,6 +161,11 @@ test('/watch checks unknown tokens, subscribes, dedupes; /list and /unwatch work
 });
 
 test('/probe queues a job and auto-subscribes', async () => {
+  const beforeEnabled = process.env.PROBE_ENABLED;
+  const beforeChats = process.env.PROBE_ALLOWED_CHAT_IDS;
+  process.env.PROBE_ENABLED = 'true';
+  process.env.PROBE_ALLOWED_CHAT_IDS = String(CHAT);
+  try {
   const repo = new MemoryRepo();
   const deps = { repo, check: fakeCheck() };
   const [queued] = await handleCommand(`/probe ${TAX}`, CHAT, deps);
@@ -172,6 +177,12 @@ test('/probe queues a job and auto-subscribes', async () => {
 
   const [again] = await handleCommand(`/probe ${TAX}`, CHAT, deps);
   assert.match(again, /already queued or running/);
+  const [denied] = await handleCommand(`/probe ${TAX}`, CHAT + 1, deps);
+  assert.match(denied, /operator authorization/);
+  } finally {
+    if (beforeEnabled === undefined) delete process.env.PROBE_ENABLED; else process.env.PROBE_ENABLED = beforeEnabled;
+    if (beforeChats === undefined) delete process.env.PROBE_ALLOWED_CHAT_IDS; else process.env.PROBE_ALLOWED_CHAT_IDS = beforeChats;
+  }
 });
 
 test('/join, /leave and /alerts manage new-pair alerts and severity', async () => {

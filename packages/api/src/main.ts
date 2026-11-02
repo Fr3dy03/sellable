@@ -1,10 +1,13 @@
 import { serve } from '@hono/node-server';
 import { makeRepo } from '@sellable/db';
 import { createApp } from './server.js';
+import { assertChain } from '@sellable/core';
 
 const port = Number(process.env.PORT || 8787);
 const repo = makeRepo(process.env.DB_URL);
 const app = createApp(repo);
+await assertChain();
+if (!(await repo.ping())) throw new Error('Database unavailable');
 
 serve({ fetch: app.fetch, port }, () => {
   const kind = process.env.DB_URL ? 'postgres' : process.env.DB_FILE ? `file ${process.env.DB_FILE}` : 'memory';

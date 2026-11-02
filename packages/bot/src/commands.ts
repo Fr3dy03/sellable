@@ -72,6 +72,10 @@ export async function handleCommand(
     }
 
     case '/probe': {
+      if (CURRENT.chainId === 677 || process.env.NODE_ENV === 'production') {
+        const allowed = (process.env.PROBE_ALLOWED_CHAT_IDS || '').split(',').map((id) => id.trim());
+        if (process.env.PROBE_ENABLED !== 'true' || !allowed.includes(String(chatId))) return ['live probes require operator authorization.'];
+      }
       const addr = args[0];
       if (!addr || !isAddress(addr)) return ['usage: /probe 0x…'];
       const normalized = addr.trim();

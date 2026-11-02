@@ -2,7 +2,10 @@ node_modules/
 .next/
 dist/
 .env
+.env.*
+!.env.example
 data/
 packages/harness/artifacts/
+packages/contracts/artifacts/
 *.log
 *.tsbuildinfo

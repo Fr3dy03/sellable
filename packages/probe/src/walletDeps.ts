@@ -1,6 +1,7 @@
 import { ethers } from 'ethers';
 import { CURRENT, SIM_BUY_AMOUNT_BOT, getProvider, v2Quote, revertReason } from '@sellable/core';
 import type { ProbeDeps, TxResult } from './types.js';
+import { MAX_TX_GAS, MAX_GAS_PRICE } from './safety.js';
 
 const ROUTER_IFACE = new ethers.Interface([
   'function swapExactETHForTokens(uint amountOutMin, address[] path, address to, uint deadline) payable returns (uint[] amounts)',
@@ -31,6 +32,19 @@ export function makeWalletDeps(
   const amountInWei = opts.amountInWei ?? SIM_BUY_AMOUNT_BOT * 2n; // 0.02 BOT default probe
   const buySlippageBps = opts.buySlippageBps ?? 1000;
   let gasSpentWei = 0n;
+  let initialTokenBalance = 0n;
+  const tokenBalance = async (token: string): Promise<bigint> => {
+    const res = await provider.call({ to: token, data: ERC20_IFACE.encodeFunctionData('balanceOf', [wallet.address]) });
+    return ERC20_IFACE.decodeFunctionResult('balanceOf', res)[0] as bigint;
+  };
+  const boundedSend = async (tx: ethers.TransactionRequest) => {
+    const estimated = await provider.estimateGas({ ...tx, from: wallet.address });
+    const gasLimit = estimated * 120n / 100n;
+    if (gasLimit > MAX_TX_GAS) throw new Error('transaction gas exceeds probe limit');
+    const fee = await provider.getFeeData();
+    if (!fee.gasPrice || fee.gasPrice > MAX_GAS_PRICE) throw new Error('gas price exceeds probe limit');
+    return wallet.sendTransaction({ ...tx, gasLimit, gasPrice: fee.gasPrice, type: 0 });
+  };
 
   const send = async (tx: () => Promise<ethers.TransactionResponse>): Promise<TxResult> => {
     try {
@@ -43,7 +57,9 @@ export function makeWalletDeps(
       }
       return { ok: true, txHash: response.hash };
     } catch (err) {
-      return { ok: false, reason: revertReason(err) };
+      const receipt = (err as { receipt?: ethers.TransactionReceipt })?.receipt;
+      if (receipt) gasSpentWei += receipt.gasUsed * receipt.gasPrice;
+      return { ok: false, reason: revertReason(err), failureKind: ethers.isError(err, 'CALL_EXCEPTION') ? 'execution' : 'infrastructure' };
     }
   };
 
@@ -62,12 +78,12 @@ export function makeWalletDeps(
     },
 
     async balanceOf(token) {
-      const data = ERC20_IFACE.encodeFunctionData('balanceOf', [wallet.address]);
-      const res = await provider.call({ to: token, data });
-      return ERC20_IFACE.decodeFunctionResult('balanceOf', res)[0] as bigint;
+      const balance = await tokenBalance(token);
+      return balance > initialTokenBalance ? balance - initialTokenBalance : 0n;
     },
 
     async buy(token, amountIn, minOut) {
+      initialTokenBalance = await tokenBalance(token);
       const data = ROUTER_IFACE.encodeFunctionData('swapExactETHForTokensSupportingFeeOnTransferTokens', [
         minOut,
         [WBOT, token],
@@ -81,7 +97,7 @@ export function makeWalletDeps(
           value: amountIn,
           data,
         });
-        return wallet.sendTransaction({
+        return boundedSend({
           to: CURRENT.dex.v2Router,
           value: amountIn,
           data,
@@ -99,7 +115,7 @@ export function makeWalletDeps(
       // USDT-style tokens require resetting a non-zero allowance first
       if (current > 0n) {
         const reset = await send(() =>
-          wallet.sendTransaction({
+          boundedSend({
             to: token,
             data: ERC20_IFACE.encodeFunctionData('approve', [spender, 0n]),
           }),
@@ -107,7 +123,7 @@ export function makeWalletDeps(
         if (!reset.ok) return reset;
       }
       return send(() =>
-        wallet.sendTransaction({
+        boundedSend({
           to: token,
           data: ERC20_IFACE.encodeFunctionData('approve', [spender, amount]),
         }),
@@ -122,10 +138,10 @@ export function makeWalletDeps(
         wallet.address,
         Math.floor(Date.now() / 1000) + 300,
       ]);
-      const before = await provider.getBalance(wallet.address);
+      const before = await provider.getBalance(wallet.address, 'latest');
       const result = await send(async () => {
         const gasLimit = await provider.estimateGas({ from: wallet.address, to: CURRENT.dex.v2Router, data });
-        return wallet.sendTransaction({ to: CURRENT.dex.v2Router, data, gasLimit: (gasLimit * 120n) / 100n });
+        return boundedSend({ to: CURRENT.dex.v2Router, data, gasLimit: (gasLimit * 120n) / 100n });
       });
       if (!result.ok) return result;
       const receipt = await provider.getTransactionReceipt(result.txHash!);

@@ -1,0 +1,15 @@
+{
+  "contract": "SellableVerdictRegistry",
+  "address": "0x3763F47e8CC4D08E7AF3eC18098F12f6B60Fe622",
+  "chainId": 968,
+  "network": "bohr-testnet",
+  "rpc": "https://rpc.bohr.life",
+  "explorer": "https://scan.bohr.life",
+  "deployer": "0x3e6F84768eCd7d2eD6Db835026bbca1EcD6F14BD",
+  "owner": "0x3e6F84768eCd7d2eD6Db835026bbca1EcD6F14BD",
+  "publisher": "0x3e6F84768eCd7d2eD6Db835026bbca1EcD6F14BD",
+  "transactionHash": "0xc51e36be9ee06c7cce0b8c68601af6250d2013372c5003bf71dcaa6a2f894258",
+  "blockNumber": 28203770,
+  "deployedAt": "2026-10-26T10:58:30.216Z",
+  "compiler": "0.8.28+commit.7893614a.Emscripten.clang"
+}

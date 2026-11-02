@@ -4,12 +4,14 @@ import {
   findLiquidity,
   getProvider,
   getBlockNumber,
+  assertChain,
 } from '@sellable/core';
 import { makeRepo, type ProbeRecord, type Repo } from '@sellable/db';
 import { runProbe } from './engine.js';
 import { makeWalletDeps, WBOT } from './walletDeps.js';
 import { tokenPriceUsd } from '@sellable/core';
 import type { ProbeDeps } from './types.js';
+import { MAX_PROBE_GAS_COST, openProbeGuard } from './safety.js';
 
 const QUEUE_POLL_MS = 15_000;
 const MIN_BALANCE_BOT = 3n * 10n ** 17n; // 0.3 BOT
@@ -52,8 +54,8 @@ async function probeOnce(
   const amountIn = BigInt(outcome.amountInWei);
   const gasSpent = BigInt(outcome.gasSpentWei ?? '0');
   const sellReceived = outcome.sellOk ? BigInt(outcome.sellReceived ?? '0') : 0n;
-  const costBot =
-    (outcome.sellOk ? amountIn - sellReceived : amountIn) + gasSpent;
+  const loss = outcome.buyOk ? (outcome.sellOk ? amountIn - sellReceived : amountIn) : 0n;
+  const costBot = (loss > 0n ? loss : 0n) + gasSpent;
 
   let costUsd: number | null = null;
   try {
@@ -124,6 +126,9 @@ function inconclusive(address: string, reason: string): ProbeRecord {
 }
 
 async function main(): Promise<void> {
+  if (process.env.PROBE_ENABLED !== 'true') throw new Error('Live spending is disabled; set PROBE_ENABLED=true to run the worker');
+  if (CURRENT.chainId === 677 && !process.env.DB_URL) throw new Error('Mainnet probes require Postgres for durable budget reservations');
+  await assertChain();
   const pk = process.env.PROBE_PRIVATE_KEY;
   if (!pk) {
     console.error('PROBE_PRIVATE_KEY not set — Phase 1 probe needs a hot wallet with ~0.5 BOT.');
@@ -133,6 +138,8 @@ async function main(): Promise<void> {
 
   const dbUrl = process.env.DB_URL;
   const repo = makeRepo(dbUrl);
+  if (!(await repo.ping())) throw new Error('Database unavailable');
+  const guard = dbUrl ? await openProbeGuard(process.env.PROBE_DB_URL || dbUrl) : null;
   log(`repo: ${dbUrl ? 'postgres' : process.env.DB_FILE ? `file ${process.env.DB_FILE}` : 'memory'} · chain env: ${process.env.CHAIN_ENV || 'mainnet'}`);
 
   const wallet = new ethers.Wallet(pk, getProvider());
@@ -145,19 +152,24 @@ async function main(): Promise<void> {
 
   const deps = makeWalletDeps(wallet);
   const budgetWei = ethers.parseEther(process.env.PROBE_DAILY_BUDGET_BOT || '1');
+  if (budgetWei <= 0n) throw new Error('PROBE_DAILY_BUDGET_BOT must be positive');
+  const reserve = (address: string) => guard
+    ? guard.reserve(address, deps.amountInWei + MAX_PROBE_GAS_COST, budgetWei)
+    : budgetAllows(repo, deps.amountInWei + MAX_PROBE_GAS_COST, budgetWei);
   log(`daily budget: ${ethers.formatEther(budgetWei)} BOT · probe size: ${ethers.formatEther(deps.amountInWei)} BOT`);
 
   const oneShot = process.argv[2] && process.argv[2] !== '--loop' ? process.argv[2] : null;
 
   if (oneShot) {
     try {
-      if (!(await budgetAllows(repo, deps.amountInWei, budgetWei))) {
+      if (!(await reserve(oneShot))) {
         console.error('daily probe budget exceeded — set PROBE_DAILY_BUDGET_BOT or wait for tomorrow (UTC).');
         process.exit(2);
       }
       await probeOnce(oneShot, repo, deps);
     } finally {
       await repo.close();
+      await guard?.close();
     }
     return;
   }
@@ -171,13 +183,13 @@ async function main(): Promise<void> {
       const job = await repo.nextProbeJob();
       if (job) {
         log(`job picked up: ${job.address} (${job.reason}, attempt ${job.attempts})`);
-        if (!(await budgetAllows(repo, deps.amountInWei, budgetWei))) {
+        if (!(await reserve(job.address))) {
           log('daily budget exceeded — failing job until tomorrow (UTC)');
           await repo.finishProbeJob(job.address, 'failed', 'daily budget exceeded');
           return;
         }
         try {
-          await probeOnce(job.address, repo, deps);
+          await probeOnce(job.address, repo, makeWalletDeps(wallet));
           await repo.finishProbeJob(job.address, 'done');
         } catch (err) {
           const msg = err instanceof Error ? err.message : String(err);
@@ -191,7 +203,20 @@ async function main(): Promise<void> {
       busy = false;
     }
   };
-  setInterval(() => void tick(), QUEUE_POLL_MS);
+  const timer = setInterval(() => void tick(), QUEUE_POLL_MS);
+  let stopping = false;
+  const shutdown = async () => {
+    if (stopping) return;
+    stopping = true;
+    clearInterval(timer);
+    // Let an in-flight buy/sell finish before releasing the wallet lock.
+    while (busy) await new Promise((resolve) => setTimeout(resolve, 100));
+    await repo.close();
+    await guard?.close();
+    process.exit(0);
+  };
+  process.on('SIGINT', () => void shutdown());
+  process.on('SIGTERM', () => void shutdown());
   await tick();
 }
 

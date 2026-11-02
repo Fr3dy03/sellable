@@ -1,5 +1,11 @@
 # Sellable
 
+**Mainnet preparation:** follow [MAINNET.md](MAINNET.md) for production
+configuration, verification, spending controls and the release sequence.
+Production requires a dedicated Postgres database. Live probes are disabled
+by default and operator-authorized; registry deployment defaults to a dry run.
+The older development walkthrough below uses testnet and development defaults.
+
 > Paste the CA. Know if you can sell.
 
 Trade-safety scanner + Telegram alerts for **BOT Chain** (chainId 677 mainnet /
@@ -28,6 +34,7 @@ packages/probe     Phase 1: real buy->approve->sell probe engine + worker (verdi
 packages/api       Phase 1: HTTP API (Hono): /check /tokens /probe /probes /health
 packages/web       Phase 2: Next.js front-end (paste-box + token page), proxies /api → API
 packages/harness   adversarial test tokens for Bohr testnet (honeypot/tax/blacklist/mint/fake-USDT)
+packages/contracts Sellable verdict registry Solidity contract + Bohr testnet deployer
 db/migrations      Postgres schema (prechecks, probes, probe_jobs, subscriptions, alerts)
 ```
 
@@ -131,6 +138,24 @@ Contracts: `BenignToken` (clean control), `HoneypotToken` (blocks
 `harness:verify` asserts the analyzer flags each one correctly AND that the
 on-chain mechanics behave as labeled (SELL BLOCKED revert, 5% tax, blacklist,
 mint ACL).
+
+### Sellable verdict registry (Bohr testnet)
+
+The registry records each token's latest live-probe verdict, optional round-trip
+loss in basis points, publication timestamp, and a hash of the full off-chain
+report. Every update emits an event so prior attestations remain auditable. The
+deployer is the owner; the configured publisher can submit verdicts.
+
+```sh
+npm run contracts:compile
+$env:DEPLOYER_PRIVATE_KEY="0x..."  # funded Bohr testnet wallet
+$env:SELLABLE_REGISTRY_PUBLISHER_ADDRESS="0x..."  # optional; defaults to deployer
+npm run contracts:deploy
+```
+
+The deployment script is pinned to Bohr testnet (chainId 968) and writes the
+address, transaction, and compiler metadata to
+`packages/contracts/deployments/bohr-testnet.json`.
 
 ### Live testnet probe demo (verified)
 

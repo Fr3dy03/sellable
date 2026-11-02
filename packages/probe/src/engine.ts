@@ -84,7 +84,7 @@ export async function runProbe(
   out.gasSpentWei = (await deps.gasSpent()).toString();
   if (!sell.ok) {
     out.revertReason = `sell reverted: ${sell.reason}`;
-    out.verdict = 'HONEYPOT';
+    out.verdict = sell.failureKind === 'infrastructure' ? 'INCONCLUSIVE' : 'HONEYPOT';
     return out;
   }
   out.sellOk = true;

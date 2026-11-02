@@ -5,11 +5,17 @@ let provider: ethers.JsonRpcProvider | null = null;
 
 export function getProvider(): ethers.JsonRpcProvider {
   if (!provider) {
-    provider = new ethers.JsonRpcProvider(CURRENT.rpc, CURRENT.chainId, {
-      staticNetwork: true,
-    });
+    const request = new ethers.FetchRequest(CURRENT.rpc);
+    request.timeout = 20_000;
+    provider = new ethers.JsonRpcProvider(request, CURRENT.chainId);
   }
   return provider;
+}
+
+/** Query the endpoint itself, including when a caller uses a static provider. */
+export async function assertChain(): Promise<void> {
+  const actual = BigInt(await getProvider().send('eth_chainId', []));
+  if (actual !== BigInt(CURRENT.chainId)) throw new Error(`RPC chain mismatch: expected ${CURRENT.chainId}, got ${actual}`);
 }
 
 export async function getBlockNumber(): Promise<number> {

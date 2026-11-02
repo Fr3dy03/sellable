@@ -1,0 +1,29 @@
+{
+  "chainId": 677,
+  "contract": "0x72BF3636A80b850aD718917fbCA06443F658C4BB",
+  "deployer": "0xEA309FEF0130F6c69810cAB49A4CAC98D91Efc2e",
+  "gasPriceGwei": "20.0",
+  "deployerBalanceBOT": "0.00522044",
+  "requiredDeployerBOT": "0.00426",
+  "shortfallBOT": "0.0",
+  "wallets": [
+    {
+      "address": "0x165A114d52e295411fC8E643F2f1488E783F12b7",
+      "fundingBOT": "0.001",
+      "method": "owner",
+      "gasLimit": "28472"
+    },
+    {
+      "address": "0x66355872d6B72d753deC299b232e01A47DabeF48",
+      "fundingBOT": "0.001",
+      "method": "publisher",
+      "gasLimit": "28446"
+    },
+    {
+      "address": "0x5c4412F308946b38949e65F760724aB01055f3d2",
+      "fundingBOT": "0.001",
+      "method": "getLatest",
+      "gasLimit": "32623"
+    }
+  ]
+}

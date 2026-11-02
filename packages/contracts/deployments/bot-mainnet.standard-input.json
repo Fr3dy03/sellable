@@ -1,0 +1,24 @@
+{
+  "language": "Solidity",
+  "sources": {
+    "SellableVerdictRegistry.sol": {
+      "content": "// SPDX-License-Identifier: MIT\npragma solidity ^0.8.28;\n\n/// @title Sellable Verdict Registry\n/// @notice Publishes the latest Sellable probe result for a token. The probe and\n///         full report stay off-chain; reportHash lets clients verify a report\n///         against the on-chain attestation.\ncontract SellableVerdictRegistry {\n    enum Verdict {\n        Unreported,\n        Sellable,\n        HighTax,\n        Honeypot,\n        Inconclusive\n    }\n\n    struct Report {\n        Verdict verdict;\n        bool hasLoss;\n        uint16 lossBps;\n        uint64 publishedAt;\n        bytes32 reportHash;\n    }\n\n    address public owner;\n    address public publisher;\n    mapping(address token => Report report) private latestReports;\n\n    event VerdictPublished(\n        address indexed token,\n        Verdict verdict,\n        bool hasLoss,\n        uint16 lossBps,\n        bytes32 reportHash,\n        uint64 publishedAt,\n        address indexed publisher\n    );\n    event PublisherChanged(address indexed previousPublisher, address indexed newPublisher);\n    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);\n\n    error Unauthorized();\n    error ZeroAddress();\n    error InvalidVerdict();\n    error InvalidLoss();\n\n    constructor(address initialPublisher) {\n        if (initialPublisher == address(0)) revert ZeroAddress();\n        owner = msg.sender;\n        publisher = initialPublisher;\n        emit OwnershipTransferred(address(0), msg.sender);\n        emit PublisherChanged(address(0), initialPublisher);\n    }\n\n    function publish(\n        address token,\n        Verdict verdict,\n        bool hasLoss,\n        uint16 lossBps,\n        bytes32 reportHash\n    ) external {\n        if (msg.sender != publisher) revert Unauthorized();\n        if (token == address(0)) revert ZeroAddress();\n        if (verdict == Verdict.Unreported || uint8(verdict) > uint8(Verdict.Inconclusive)) {\n            revert InvalidVerdict();\n        }\n        if (hasLoss && lossBps > 10_000) revert InvalidLoss();\n\n        uint64 publishedAt = uint64(block.timestamp);\n        latestReports[token] = Report(verdict, hasLoss, hasLoss ? lossBps : 0, publishedAt, reportHash);\n        emit VerdictPublished(token, verdict, hasLoss, hasLoss ? lossBps : 0, reportHash, publishedAt, msg.sender);\n    }\n\n    function getLatest(address token) external view returns (Report memory) {\n        return latestReports[token];\n    }\n\n    function setPublisher(address newPublisher) external {\n        if (msg.sender != owner) revert Unauthorized();\n        if (newPublisher == address(0)) revert ZeroAddress();\n        address previous = publisher;\n        publisher = newPublisher;\n        emit PublisherChanged(previous, newPublisher);\n    }\n\n    function transferOwnership(address newOwner) external {\n        if (msg.sender != owner) revert Unauthorized();\n        if (newOwner == address(0)) revert ZeroAddress();\n        address previous = owner;\n        owner = newOwner;\n        emit OwnershipTransferred(previous, newOwner);\n    }\n}\n"
+    }
+  },
+  "settings": {
+    "optimizer": {
+      "enabled": true,
+      "runs": 200
+    },
+    "evmVersion": "paris",
+    "outputSelection": {
+      "*": {
+        "*": [
+          "abi",
+          "evm.bytecode.object",
+          "evm.deployedBytecode.object"
+        ]
+      }
+    }
+  }
+}
